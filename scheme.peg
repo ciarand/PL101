@@ -1,0 +1,40 @@
+start =
+    expression
+
+validchar
+    = [0-9a-zA-Z_?!+\-=@#$%^&*/.]
+
+atom =
+    chars:validchar+
+        { return chars.join(""); }
+
+popen =
+	[(]
+
+pclose =
+	[)]
+
+spacedexpr =
+	s:expression whitespace+
+    	{ return s; }
+
+whitespace =
+    [\n\t ]
+
+quote =
+    "'" rest:expression
+        { return ["quote", rest]; }
+
+comment =
+    ";;" [^\n]* "\n"
+        { return "\n"; }
+
+expression =
+  whitespace+ expr:expression whitespace*
+        { return expr; }
+  / atom
+  / quote
+  / popen rest:spacedexpr* last:expression pclose
+		{ return rest.concat([last]); }
+  / comment* expr:expression comment*
+        { return expr; }
